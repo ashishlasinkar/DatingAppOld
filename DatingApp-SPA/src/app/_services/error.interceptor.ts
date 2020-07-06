@@ -21,20 +21,21 @@ export class ErrorInterceptor implements HttpInterceptor {
 
         if (error instanceof HttpErrorResponse) {
           const applicationError = error.headers.get('Application-Error');
+          if (applicationError) {
+            return throwError(applicationError);
+          }
 
-          return throwError(applicationError);
-        }
-
-        const serverError = error.error;
-        let modelStateErrors = '';
-        if (serverError.errors && typeof serverError.errors === 'object') {
-          for (const key in serverError.errors) {
-            if (serverError.errors[key]) {
-              modelStateErrors += serverError.errors[key] + '\n';
+          const serverError = error.error;
+          let modelStateErrors = '';
+          if (serverError.errors && typeof serverError.errors === 'object') {
+            for (const key in serverError.errors) {
+              if (serverError.errors[key]) {
+                modelStateErrors += serverError.errors[key] + '\n';
+              }
             }
           }
+          return throwError(modelStateErrors || serverError || 'Server Error');
         }
-        return throwError(modelStateErrors || serverError || 'Server Error');
       })
     );
   }
